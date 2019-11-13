@@ -1,0 +1,101 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package comparador;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+
+/**
+ *
+ * @author Trujillo
+ */
+ 
+public class comparador {
+    
+    public static void main (String [ ] args) throws IOException {
+        //Recorremos todos los archivos dentro de la carpeta
+        String sCarpAct = System.getProperty("/Desktop/tesis"); //Obtenemos la carpeta donde están los archivos
+        File carpeta = new File(sCarpAct);
+        String[] listado = carpeta.list();  //obtenemos los nombres de todos los archivos
+        ArrayList<String> prueba= Obtener("prueba");
+        String[][] resultado= new String[listado.length][prueba.size()];
+        String[] coincidencias;
+        
+        if (listado == null || listado.length == 0) {
+            System.out.println("No hay elementos dentro de la carpeta actual");
+            return;
+        }else {
+            for (int i=0; i< listado.length; i++) {     //A cada archivo lo comparamos
+                coincidencias = Comparador(prueba,listado[i]);  //llamamos el método Comparador
+                for (int j=0;j<=coincidencias.length;j++)
+                    resultado[i][j]=coincidencias[j];   // Almacenamos los resultados en una matriz
+            }
+        }
+        // Escribimos en un archivo el resultado de todas las comparaciones
+        FileWriter fichero = null; 
+        PrintWriter pw = null;
+        try{
+            fichero = new FileWriter("/Desktop/tesis/Prueba_resultado.txt"); //cambiar archivo Principal
+            pw = new PrintWriter(fichero);
+            
+            for(int esc=0; esc <= resultado.length;esc++)
+                pw.println(resultado[esc]);
+        }catch(Exception e){
+            e.printStackTrace();
+        }finally{   //Nos aseguramos de que se cierra el fichero
+            try{
+                if(null != fichero)
+                    fichero.close();
+            }catch(Exception e2){
+                e2.printStackTrace();
+            }
+        }
+        //En esta parte enviamos Prueba_resultado.txt
+    }
+//------------------------------ Métodos----------------------------------------
+    
+//Obtener palabras de una tesis
+    public static ArrayList<String> Obtener(String nombre) throws FileNotFoundException, IOException{
+        //Recibe el nom
+        ArrayList<String> arreglo_palabras = new ArrayList();
+        File fichero = new File("/Desktop/tesis/"+nombre);  //Si se desea, cambiar rutas
+        FileReader fr = new FileReader(fichero);
+        BufferedReader br = new BufferedReader(fr);
+        
+        String linea;
+        while((linea = br.readLine()) != null){
+            String palabra[] = linea.split(" ");    //Regresa las palabras de una linea en arreglo
+            for(int cont=0; cont<=palabra.length;cont++)
+                arreglo_palabras.add(palabra[cont]);
+        }
+        fr.close();
+        
+        return arreglo_palabras;
+    }
+    
+
+    //Comparar Tesis con base en el arreglo ya creado de la Tesis principal
+    public static String[] Comparador(ArrayList<String> tesis_comparador,String tesis_nombre) throws FileNotFoundException, IOException{
+        //El método recibe el arreglo de las palabras del archivo que se va a comparar y el nombre del archivo en la base de datos a actuar
+        String[] coincidencias= new String[tesis_comparador.size()+1]; // Resultado de coincidencias
+        ArrayList<String> fichero_tesis= Obtener(tesis_nombre);
+        int cont=0;
+        for(int i=0;i<=tesis_comparador.size();i++){
+            cont=0;
+            for(int j=0;j<=fichero_tesis.size();j++)
+                if(tesis_comparador.get(i).equalsIgnoreCase(fichero_tesis.get(j)))
+                    cont+=1;
+            coincidencias[i]=Integer.toString(cont);
+        }
+        coincidencias[tesis_comparador.size()]=tesis_nombre; //Agregamos el nombre al final para saber que archivo es
+        return coincidencias;
+    }
+}
